@@ -85,6 +85,12 @@ class PerTractCcdDataIdContainer(lsst.pipe.base.DataIdContainer):
         dataRef = namespace.butler.dataRef(datasetType=self.datasetType, dataId=forcedDataId)
         self.refList.append(dataRef)
 
+    def getSkymap(self, namespace, datasetType):
+        """Only retrieve skymap if required"""
+        if not hasattr(self, "_skymap"):
+            self._skymap = namespace.butler.get(datasetType + "_skyMap")
+        return self._skymap
+
     def makeDataRefList(self, namespace):
         """Make self.refList from self.idList
         """
