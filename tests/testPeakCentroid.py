@@ -32,7 +32,7 @@ from lsst.meas.base.tests import (AlgorithmTestCase, CentroidTransformTestCase,
                                   SingleFramePluginTransformSetupHelper, ForcedPluginTransformSetupHelper)
 
 @contextmanager
-def onlyLogFatal(log):
+def onlyLogFatal(log, name):
     """
     For the duration of the context, only log FATAL errors.
 
@@ -40,12 +40,12 @@ def onlyLogFatal(log):
     want to be able to check that they have set appropriate flags without
     spewing alarming & confusing error messages to the console.
     """
-    oldLevel = log.getThreshold()
-    log.setThreshold(log.FATAL)
+    oldLevel = log.getLevel(name)
+    log.setLevel(name, log.FATAL)
     try:
         yield
     finally:
-        log.setThreshold(oldLevel)
+        log.setLevel(name, oldLevel)
 
 
 class SingleFramePeakCentroidTestCase(AlgorithmTestCase):
@@ -85,7 +85,7 @@ class SingleFramePeakCentroidTestCase(AlgorithmTestCase):
         """
         self.catalog[0].getFootprint().getPeaks().clear()
         # The decorator suppresses alarming but expected errors on the console.
-        with onlyLogFatal(self.task.log):
+        with onlyLogFatal(self.task.log, self.task.getFullName()):
             self.task.run(self.exposure, self.catalog)
         self.assertTrue(self.catalog[0].get("base_PeakCentroid_flag"))
 
