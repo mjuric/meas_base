@@ -30,6 +30,7 @@
 #include "lsst/meas/base/SincCoeffs.h"
 #include "lsst/afw/image/Image.h"
 #include "lsst/afw/math/Integrate.h"
+#include "lsst/meas/base/libfftw3.h"
 
 namespace lsst { namespace meas { namespace base { namespace {
 
@@ -444,7 +445,8 @@ typename afw::image::Image<PixelT>::Ptr calcImageKSpaceReal(double const rad1, d
     double *c = cimg.get();
     // fftplan args: nx, ny, *in, *out, kindx, kindy, flags
     // - done in-situ if *in == *out
-    fftw_plan plan = fftw_plan_r2r_2d(wid, wid, c, c, FFTW_R2HC, FFTW_R2HC, FFTW_ESTIMATE);
+    auto libfftw3 = libfftw3_t::api();
+    fftw_plan plan = libfftw3->fftw_plan_r2r_2d(wid, wid, c, c, FFTW_R2HC, FFTW_R2HC, FFTW_ESTIMATE);
 
     // compute the k-space values and put them in the cimg array
     double const twoPiRad1 = afw::geom::TWOPI*rad1;
@@ -473,8 +475,8 @@ typename afw::image::Image<PixelT>::Ptr calcImageKSpaceReal(double const rad1, d
     c[fxy*wid + fxy] = afw::geom::PI*(rad2*rad2 - rad1*rad1);
 
     // perform the fft and clean up after ourselves
-    fftw_execute(plan);
-    fftw_destroy_plan(plan);
+    libfftw3->fftw_execute(plan);
+    libfftw3->fftw_destroy_plan(plan);
 
     // put the coefficients into an image
     typename afw::image::Image<PixelT>::Ptr coeffImage =
